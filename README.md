@@ -88,7 +88,8 @@ Returns a small health response:
 ### `POST /api/backtest`
 
 Runs one backtest. The `days` query parameter is optional and defaults to
-`100`.
+`100`. It accepts values from `1` to `5000` so an accidental request cannot
+create an unbounded simulation.
 
 ```bash
 curl -X POST "http://localhost:8000/api/backtest?days=252"
@@ -110,6 +111,8 @@ The exact metric values depend on the requested number of days. The endpoint
 currently generates the price data internally, so it does not accept an
 uploaded CSV or a live market symbol.
 
+Invalid `days` values are rejected with a `422` response.
+
 ## Project layout
 
 ```text
@@ -121,10 +124,21 @@ uploaded CSV or a live market symbol.
 │   ├── __init__.py
 │   └── ma_rsi_strategy.py      # Moving-average + RSI signals
 ├── main.py                     # FastAPI app and backtest endpoint
+├── tests/
+│   └── test_engine.py           # Determinism and input/metric checks
 ├── Dockerfile
+├── .dockerignore
 ├── docker-compose.yml
 └── requirements.txt
 ```
+
+## Run the checks
+
+```bash
+python -m pytest -q
+```
+
+The Docker Compose service also includes a health check against `GET /`.
 
 ## Metrics
 
